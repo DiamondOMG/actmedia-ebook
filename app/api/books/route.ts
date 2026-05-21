@@ -18,19 +18,26 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { title, pdfUrl, pdfName, pdfSize } = body;
 
-    if (!title || !pdfUrl || !pdfName) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!pdfUrl || !pdfName) {
+      return NextResponse.json({ error: "Missing required fields (pdfUrl, pdfName)" }, { status: 400 });
+    }
+
+    let finalTitle = title?.trim();
+    if (!finalTitle) {
+      const allBooks = await db.select({ id: books.id }).from(books);
+      finalTitle = `test${allBooks.length + 1}`;
     }
 
     const [newBook] = await db
       .insert(books)
       .values({
-        title,
+        title: finalTitle,
         pdfUrl,
         pdfName,
         pdfSize,
       })
       .returning();
+
 
     return NextResponse.json(newBook, { status: 201 });
   } catch (error: any) {
