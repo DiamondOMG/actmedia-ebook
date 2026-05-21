@@ -26,15 +26,15 @@ export default async function Home() {
         {/* Brand Header (Compact) */}
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-indigo-100 shadow-sm shadow-indigo-100/20 text-xs font-bold text-indigo-600">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-500 animate-spin" /> E-Book Flipbook Converter
+            <Sparkles className="w-3.5 h-3.5 text-indigo-500 animate-spin" /> ACT-MEDIA e-book - 3D Flipbook Converter
           </div>
           
           <h1 className="text-3xl md:text-5xl font-black tracking-tight text-neutral-900 bg-gradient-to-r from-indigo-700 via-violet-600 to-purple-800 bg-clip-text text-transparent">
-            ACT Media E-Book
+            ACT-MEDIA e-book
           </h1>
           
           <p className="text-neutral-500 max-w-lg mx-auto text-xs md:text-sm font-medium leading-relaxed">
-            เปลี่ยนไฟล์เอกสาร PDF ทั่วไป ให้กลายเป็นเว็บบุ๊คเปิดพลิกหน้า 3D อัจฉริยะ โหลดเร็ว สวยงาม และแชร์ต่อได้ทันที
+            Convert your standard PDF documents into interactive 3D Web Books. Fast, beautiful, and instantly shareable.
           </p>
         </div>
 
@@ -52,7 +52,7 @@ export default async function Home() {
                 <span className="p-2 bg-indigo-50 rounded-xl text-indigo-600 border border-indigo-100">
                   <Book className="w-5 h-5" />
                 </span>
-                คลัง E-Book ทั้งหมด ({allBooks.length})
+                All E-Books ({allBooks.length})
               </h2>
             </div>
 
@@ -62,9 +62,9 @@ export default async function Home() {
                   <Book className="w-8 h-8 text-neutral-400" />
                 </div>
                 <div className="space-y-1.5">
-                  <h3 className="text-lg font-bold text-neutral-700">คลังหนังสือยังว่างอยู่</h3>
+                  <h3 className="text-lg font-bold text-neutral-700">Your library is currently empty</h3>
                   <p className="text-xs md:text-sm text-neutral-400 max-w-sm mx-auto font-medium">
-                    กรอกชื่อหนังสือและอัปโหลดไฟล์ PDF ในข้อ 1 และ 2 ซ้ายมือ เพื่อเริ่มสร้างหนังสือเล่มแรกของคุณได้เลย!
+                    Enter a book title and upload your PDF on the left side to create your first 3D flipbook!
                   </p>
                 </div>
               </div>
@@ -95,7 +95,7 @@ export default async function Home() {
 
                       {/* File information */}
                       <p className="text-sm font-semibold text-neutral-400 truncate">
-                        ไฟล์: <span className="text-neutral-600 font-bold">{book.pdfName}</span>
+                        File: <span className="text-neutral-600 font-bold">{book.pdfName}</span>
                       </p>
                     </div>
 
@@ -104,7 +104,7 @@ export default async function Home() {
                       <div className="flex items-center justify-between pt-2 border-t border-neutral-100 text-[10px] font-bold text-neutral-400">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-3.5 h-3.5 text-neutral-400" />
-                          <span>{new Date(book.createdAt).toLocaleDateString("th-TH")}</span>
+                          <span>{new Date(book.createdAt).toLocaleDateString("en-US")}</span>
                         </div>
                         {book.pdfSize && (
                           <div className="flex items-center gap-1">
@@ -119,7 +119,7 @@ export default async function Home() {
                         href={`/books/${book.id}`}
                         className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-neutral-900 hover:bg-indigo-600 text-white font-extrabold text-xs transition-all active:scale-95 shadow-sm hover:shadow-indigo-600/25"
                       >
-                        เปิดอ่าน E-Book <ExternalLink className="w-3.5 h-3.5" />
+                        Open E-Book <ExternalLink className="w-3.5 h-3.5" />
                       </Link>
                     </div>
                   </div>

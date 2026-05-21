@@ -36,7 +36,7 @@ export default function UploadBook({ onSuccess }: UploadBookProps) {
       });
 
       if (!response.ok) {
-        throw new Error("บันทึกข้อมูลลงฐานข้อมูลไม่สำเร็จ");
+        throw new Error("Failed to save book data to database");
       }
 
       // Reset state on success
@@ -45,7 +45,7 @@ export default function UploadBook({ onSuccess }: UploadBookProps) {
       router.refresh();
       if (onSuccess) onSuccess();
     } catch (err: any) {
-      setError(err.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+      setError(err.message || "An error occurred while saving the book");
     } finally {
       setIsSubmitting(false);
     }
@@ -64,9 +64,9 @@ export default function UploadBook({ onSuccess }: UploadBookProps) {
         </div>
         <div>
           <h2 className="text-xl font-black text-neutral-900 flex items-center gap-1.5 tracking-tight">
-            สร้าง E-Book ใน 3 ขั้นตอน <Sparkles className="w-5 h-5 text-indigo-600" />
+            Create E-Book in 3 Steps <Sparkles className="w-5 h-5 text-indigo-600" />
           </h2>
-          <p className="text-xs text-neutral-400 font-bold">รวดเร็ว ปลอดภัย ไม่ซับซ้อน</p>
+          <p className="text-xs text-neutral-400 font-bold">Fast, secure, and hassle-free</p>
         </div>
       </div>
 
@@ -74,12 +74,12 @@ export default function UploadBook({ onSuccess }: UploadBookProps) {
         {/* STEP 1: TITLE INPUT (COMPACT) */}
         <div className="flex flex-col gap-1.5">
           <div className="flex justify-between items-center">
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">ขั้นตอนที่ 1</span>
-            <span className="text-xs text-neutral-400 font-bold">ตั้งชื่อหนังสือ</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">Step 1</span>
+            <span className="text-xs text-neutral-400 font-bold">Book Title (Optional)</span>
           </div>
           <input
             type="text"
-            placeholder="กรอกชื่อหนังสือ..."
+            placeholder="Enter book title (Leave empty for default)..."
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             disabled={isSubmitting || isUploading}
@@ -90,8 +90,8 @@ export default function UploadBook({ onSuccess }: UploadBookProps) {
         {/* STEP 2: UPLOAD PDF (COMPACT - USING UPLOADBUTTON) */}
         <div className="flex flex-col gap-1.5">
           <div className="flex justify-between items-center">
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">ขั้นตอนที่ 2</span>
-            <span className="text-xs text-neutral-400 font-bold">อัปโหลดไฟล์ PDF</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">Step 2</span>
+            <span className="text-xs text-neutral-400 font-bold">Upload PDF File</span>
           </div>
 
           <div className="flex flex-col items-center justify-center gap-3 p-5 rounded-2xl border border-dashed border-indigo-100 bg-indigo-50/10 min-h-[120px] text-center">
@@ -106,7 +106,7 @@ export default function UploadBook({ onSuccess }: UploadBookProps) {
               <div className="flex flex-col items-center gap-1.5 text-neutral-500 font-bold px-1 text-center">
                 <FileUp className="w-7 h-7 text-indigo-400 mb-1" />
                 <span className="text-xs">
-                  {isUploading ? "กำลังอัปโหลดไฟล์..." : "กรุณาเลือกไฟล์ PDF (สูงสุด 32MB)"}
+                  {isUploading ? "Uploading file..." : "Select PDF File (Max 32MB)"}
                 </span>
               </div>
             )}
@@ -130,7 +130,7 @@ export default function UploadBook({ onSuccess }: UploadBookProps) {
                 }}
                 onUploadError={(err: Error) => {
                   setIsUploading(false);
-                  setError(`อัปโหลดล้มเหลว: ${err.message}`);
+                  setError(`Upload failed: ${err.message}`);
                 }}
                 appearance={{
                   allowedContent: "hidden", // Hide extra allowed text to save space
@@ -142,10 +142,10 @@ export default function UploadBook({ onSuccess }: UploadBookProps) {
                 }}
                 content={{
                   button({ ready, isUploading }) {
-                    if (isUploading) return <span className="flex items-center gap-1"><Loader2 className="w-3.5 h-3.5 animate-spin" /> กำลังอัปโหลด...</span>;
-                    if (uploadedFile) return "เปลี่ยนไฟล์ PDF";
-                    if (ready) return <span className="flex items-center gap-1"><FileUp className="w-3.5 h-3.5" /> เลือกไฟล์ PDF</span>;
-                    return "กำลังโหลด...";
+                    if (isUploading) return <span className="flex items-center gap-1"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading...</span>;
+                    if (uploadedFile) return "Change PDF File";
+                    if (ready) return <span className="flex items-center gap-1"><FileUp className="w-3.5 h-3.5" /> Choose PDF File</span>;
+                    return "Loading...";
                   }
                 }}
               />
@@ -156,8 +156,8 @@ export default function UploadBook({ onSuccess }: UploadBookProps) {
         {/* STEP 3: CONVERT BUTTON (SEPARATE STEPS / EXPLICIT ACTION) */}
         <div className="flex flex-col gap-1.5 mt-2">
           <div className="flex justify-between items-center">
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">ขั้นตอนที่ 3</span>
-            <span className="text-xs text-neutral-400 font-bold">ยืนยันการแปลงไฟล์</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">Step 3</span>
+            <span className="text-xs text-neutral-400 font-bold">Confirm Conversion</span>
           </div>
 
           <button
@@ -172,12 +172,12 @@ export default function UploadBook({ onSuccess }: UploadBookProps) {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                กำลังเขียนสเกลเว็บบุ๊ค...
+                Publishing E-Book...
               </>
             ) : (
               <>
                 <Sparkles className="w-5 h-5" />
-                แปลงเป็น E-BOOK ทันที!
+                CONVERT TO E-BOOK NOW!
               </>
             )}
           </button>
@@ -196,10 +196,11 @@ export default function UploadBook({ onSuccess }: UploadBookProps) {
       {isSubmitting && (
         <div className="absolute inset-0 bg-white/95 backdrop-blur-md flex flex-col items-center justify-center gap-3 z-50">
           <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
-          <h3 className="text-lg font-black text-neutral-900">กำลังจัดพิมพ์เว็บบุ๊ค...</h3>
-          <p className="text-xs text-neutral-500 font-bold">บันทึกข้อมูลเข้าฐานข้อมูลและลิ้งก์ 3D</p>
+          <h3 className="text-lg font-black text-neutral-900">Publishing Web Book...</h3>
+          <p className="text-xs text-neutral-500 font-bold">Saving data and generating 3D links</p>
         </div>
       )}
     </div>
   );
 }
+

@@ -49,15 +49,10 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const idStr = searchParams.get("id");
+    const id = searchParams.get("id");
 
-    if (!idStr) {
+    if (!id) {
       return NextResponse.json({ error: "Missing book ID" }, { status: 400 });
-    }
-
-    const id = parseInt(idStr);
-    if (isNaN(id)) {
-      return NextResponse.json({ error: "Invalid book ID" }, { status: 400 });
     }
 
     const [deletedBook] = await db
@@ -75,4 +70,5 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: error.message || "Failed to delete book" }, { status: 500 });
   }
 }
+
 

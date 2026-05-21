@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Trash2, Loader2 } from "lucide-react";
 
 interface DeleteBookButtonProps {
-  bookId: number;
+  bookId: string;
   bookTitle: string;
 }
 
@@ -32,12 +32,12 @@ export default function DeleteBookButton({ bookId, bookTitle }: DeleteBookButton
       });
 
       if (!response.ok) {
-        throw new Error("ลบหนังสือไม่สำเร็จ");
+        throw new Error("Failed to delete book");
       }
 
       router.refresh();
     } catch (error) {
-      alert("เกิดข้อผิดพลาดในการลบหนังสือ");
+      alert("Failed to delete the book. Please try again.");
       setConfirmOpen(false);
     } finally {
       setIsDeleting(false);
@@ -48,7 +48,7 @@ export default function DeleteBookButton({ bookId, bookTitle }: DeleteBookButton
     <button
       onClick={handleDelete}
       disabled={isDeleting}
-      title={confirmOpen ? "คลิกอีกครั้งเพื่อยืนยันการลบ" : "ลบหนังสือ"}
+      title={confirmOpen ? "Click again to confirm delete" : "Delete Book"}
       className={`absolute top-4 right-4 z-20 p-2 rounded-full transition-all duration-300 flex items-center justify-center ${
         confirmOpen
           ? "bg-rose-500 text-white scale-105 shadow-md shadow-rose-500/20 active:scale-95"
@@ -59,7 +59,7 @@ export default function DeleteBookButton({ bookId, bookTitle }: DeleteBookButton
         <Loader2 className="w-3.5 h-3.5 animate-spin" />
       ) : confirmOpen ? (
         <span className="text-[10px] font-black px-1.5 flex items-center gap-1 animate-pulse">
-          ลบ?
+          Del?
         </span>
       ) : (
         <Trash2 className="w-3.5 h-3.5" />
@@ -67,3 +67,4 @@ export default function DeleteBookButton({ bookId, bookTitle }: DeleteBookButton
     </button>
   );
 }
+
