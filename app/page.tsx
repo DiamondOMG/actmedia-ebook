@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { books } from "@/db/schema";
 import { desc } from "drizzle-orm";
 import UploadBook from "@/components/upload-btn";
+import DeleteBookButton from "@/components/delete-btn";
 import Link from "next/link";
 import { Book, Calendar, ExternalLink, HardDrive, Sparkles } from "lucide-react";
 
@@ -76,6 +77,9 @@ export default async function Home() {
                   >
                     {/* Corner gradient decor */}
                     <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-50/40 rounded-full blur-xl group-hover:bg-indigo-50/80 transition-colors" />
+
+                    {/* Delete Book Button */}
+                    <DeleteBookButton bookId={book.id} bookTitle={book.title} />
 
                     <div className="space-y-3">
                       {/* Icon & Title */}

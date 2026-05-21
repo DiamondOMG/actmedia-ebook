@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { books } from "@/db/schema";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 export async function GET() {
   try {
@@ -45,3 +45,34 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message || "Failed to create book" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const idStr = searchParams.get("id");
+
+    if (!idStr) {
+      return NextResponse.json({ error: "Missing book ID" }, { status: 400 });
+    }
+
+    const id = parseInt(idStr);
+    if (isNaN(id)) {
+      return NextResponse.json({ error: "Invalid book ID" }, { status: 400 });
+    }
+
+    const [deletedBook] = await db
+      .delete(books)
+      .where(eq(books.id, id))
+      .returning();
+
+    if (!deletedBook) {
+      return NextResponse.json({ error: "Book not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: "Book deleted successfully", book: deletedBook }, { status: 200 });
+  } catch (error: any) {
+    console.error("Error deleting book:", error);
+    return NextResponse.json({ error: error.message || "Failed to delete book" }, { status: 500 });
+  }
+}
+
