@@ -63,22 +63,35 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
   const bookRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Custom sizing for responsiveness
+  // Custom sizing for responsiveness - maximize PDF display
   const [pageWidth, setPageWidth] = useState(450);
+  const [pageHeight, setPageHeight] = useState(636);
 
   useEffect(() => {
     setIsMounted(true);
     
-    // Resize handler to adjust book page size based on window width
+    // Resize handler to maximize PDF size based on available viewport
     const handleResize = () => {
       const w = window.innerWidth;
+      const h = window.innerHeight;
+      // Reserve space for header (56px) + small overlay padding
+      const availableHeight = h - 80;
+      const aspectRatio = 1.414; // A4
+      // Calculate width from height to maximize vertical usage
+      const widthFromHeight = Math.floor(availableHeight / aspectRatio);
+      
+      let maxWidth: number;
       if (w < 640) {
-        setPageWidth(w - 32); // Mobile width
+        maxWidth = w - 16; // Mobile - nearly full width
       } else if (w < 1024) {
-        setPageWidth(380);
+        maxWidth = Math.min(widthFromHeight, w - 80);
       } else {
-        setPageWidth(480); // Default desktop width
+        maxWidth = Math.min(widthFromHeight, w - 160, 700);
       }
+      
+      const finalWidth = Math.max(300, maxWidth);
+      setPageWidth(finalWidth);
+      setPageHeight(Math.floor(finalWidth * aspectRatio));
     };
 
     handleResize();
@@ -138,13 +151,13 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
     );
   }
 
-  const pageHeight = pageWidth * 1.414; // A4 Aspect Ratio
+  // pageHeight is now computed in resize handler
 
   return (
     <div 
       ref={containerRef}
-      className={`min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-950 to-neutral-900 flex flex-col ${
-        isFullscreen ? "p-4" : "py-6 px-4 md:px-8"
+      className={`h-screen bg-gradient-to-br from-neutral-900 via-neutral-950 to-neutral-900 flex flex-col ${
+        isFullscreen ? "p-2" : "py-2 px-2 md:px-4"
       } select-none transition-colors relative overflow-hidden`}
     >
       <style dangerouslySetInnerHTML={{__html: `
@@ -168,7 +181,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
       <div className="absolute -bottom-60 -left-60 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[120px] -z-10" />
 
       {/* Top Navigation Header */}
-      <div className="w-full max-w-7xl mx-auto flex items-center justify-between gap-4 mb-6 z-10">
+      <div className="w-full max-w-7xl mx-auto flex items-center justify-between gap-4 mb-2 z-10">
         <button
           onClick={() => router.push("/")}
           className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-4 py-2.5 rounded-2xl border border-white/10 backdrop-blur-md"
@@ -205,7 +218,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
       </div>
 
       {/* Main E-book Flipbook Container */}
-      <div className="flex-1 flex items-center justify-center z-10 w-full max-w-7xl mx-auto overflow-hidden">
+      <div className="flex-1 flex items-center justify-center z-10 w-full max-w-7xl mx-auto overflow-hidden min-h-0">
         <Document
           file={pdfUrl}
           onLoadSuccess={onDocumentLoadSuccess}
@@ -227,15 +240,21 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
               <HTMLFlipBook
                 width={pageWidth}
                 height={pageHeight}
-                size="stretch"
+                size="fixed"
                 minWidth={300}
-                maxWidth={800}
+                maxWidth={900}
                 minHeight={400}
-                maxHeight={1200}
+                maxHeight={1400}
                 maxShadowOpacity={0.5}
                 showCover={true}
                 mobileScrollSupport={true}
                 onFlip={handlePageFlip}
+                usePortrait={true}
+                flippingTime={600}
+                useMouseEvents={true}
+                swipeDistance={30}
+                showPageCorners={true}
+                drawShadow={true}
                 className="mx-auto rounded-xl overflow-hidden shadow-2xl"
                 ref={bookRef}
               >
@@ -268,43 +287,40 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                   <ChevronRight className="w-6 h-6" />
                 </button>
               )}
+              {/* Page number overlay - small badge on bottom-right of PDF */}
+              <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 text-[11px] font-medium text-neutral-300 pointer-events-none z-20">
+                {currentPage + 1} / {numPages}
+              </div>
             </div>
           )}
         </Document>
       </div>
 
-      {/* Floating Controller Bottom Bar */}
+      {/* Compact Floating Controller - bottom center */}
       {numPages && (
-        <div className="w-full max-w-md mx-auto mt-6 z-10">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 rounded-3xl bg-neutral-900/60 border border-white/10 backdrop-blur-xl shadow-2xl">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={flipPrev}
-                disabled={currentPage === 0}
-                className="p-2 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 rounded-xl text-white transition-all active:scale-95"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              
-              <div className="text-sm font-medium text-neutral-300 flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-indigo-400" />
-                <span>
-                  หน้า {currentPage + 1} / {numPages}
-                </span>
-              </div>
+        <div className="w-full flex justify-center mt-2 z-10">
+          <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-neutral-900/70 border border-white/10 backdrop-blur-xl shadow-2xl">
+            <button
+              onClick={flipPrev}
+              disabled={currentPage === 0}
+              className="p-1.5 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 rounded-lg text-white transition-all active:scale-95"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
 
-              <button
-                onClick={flipNext}
-                disabled={currentPage >= numPages - 1}
-                className="p-2 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 rounded-xl text-white transition-all active:scale-95"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
+            <button
+              onClick={flipNext}
+              disabled={currentPage >= numPages - 1}
+              className="p-1.5 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 rounded-lg text-white transition-all active:scale-95"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+
+            <div className="w-px h-5 bg-white/10" />
 
             {/* Quick Page Jumper */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-neutral-400">ไปที่หน้า:</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] text-neutral-500">ไปหน้า</span>
               <input
                 type="number"
                 min={1}
@@ -324,7 +340,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                     }
                   }
                 }}
-                className="w-16 px-2 py-1 text-center bg-neutral-950/60 border border-white/10 text-white rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-sm font-medium"
+                className="w-12 px-1.5 py-0.5 text-center bg-neutral-950/60 border border-white/10 text-white rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs font-medium"
               />
             </div>
           </div>
