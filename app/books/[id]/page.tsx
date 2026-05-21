@@ -2,7 +2,7 @@ import { db } from "@/db";
 import { books } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import BookView from "@/components/book-view";
+import BookViewLoader from "@/components/book-view-loader";
 
 interface BookPageProps {
   params: Promise<{
@@ -30,5 +30,5 @@ export default async function BookPage({ params }: BookPageProps) {
     notFound();
   }
 
-  return <BookView pdfUrl={bookData.pdfUrl} title={bookData.title} />;
+  return <BookViewLoader pdfUrl={bookData.pdfUrl} title={bookData.title} />;
 }

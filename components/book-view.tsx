@@ -8,11 +8,8 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
-  Maximize2,
-  Minimize2,
   Loader2,
-  Download,
-  BookOpen
+  Download
 } from "lucide-react";
 
 // Configure pdfjs worker from standard unpkg CDN to ensure smooth client-side parsing
@@ -58,7 +55,6 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
   const router = useRouter();
   const [numPages, setNumPages] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const bookRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -66,69 +62,78 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
   // Custom sizing for responsiveness - maximize PDF display
   const [pageWidth, setPageWidth] = useState(450);
   const [pageHeight, setPageHeight] = useState(636);
+  const [aspectRatio, setAspectRatio] = useState(1.414); // Default to A4
+  const aspectRef = useRef(1.414);
+
+  // Resize handler to maximize PDF size based on available viewport and aspect ratio
+  const handleResize = React.useCallback(() => {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    // Reserve minimal space for overlay badges (10px padding top/bottom)
+    const availableHeight = h - 20;
+    const currentRatio = aspectRef.current;
+    
+    // Determine margins based on screen size
+    let horizontalMargin = 20; // Default margin
+    if (w >= 1024) {
+      horizontalMargin = 80;
+    } else if (w >= 640) {
+      horizontalMargin = 40;
+    }
+    
+    const maxAvailableWidth = w - horizontalMargin;
+    
+    // Calculate the width that would perfectly match the available height
+    const widthFromHeight = Math.floor(availableHeight / currentRatio);
+    
+    // Choose the smaller width to ensure it fits both width and height boundaries perfectly
+    let finalWidth = Math.min(maxAvailableWidth, widthFromHeight);
+    
+    // Cap at a reasonable maximum width for desktop
+    if (w >= 1024) {
+      finalWidth = Math.min(finalWidth, 800);
+    }
+    
+    // Set a minimum fallback width
+    finalWidth = Math.max(280, finalWidth);
+    
+    setPageWidth(finalWidth);
+    setPageHeight(Math.floor(finalWidth * currentRatio));
+  }, []);
 
   useEffect(() => {
     setIsMounted(true);
-    
-    // Resize handler to maximize PDF size based on available viewport
-    const handleResize = () => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      // Reserve space for header (56px) + small overlay padding
-      const availableHeight = h - 80;
-      const aspectRatio = 1.414; // A4
-      // Calculate width from height to maximize vertical usage
-      const widthFromHeight = Math.floor(availableHeight / aspectRatio);
-      
-      let maxWidth: number;
-      if (w < 640) {
-        maxWidth = w - 16; // Mobile - nearly full width
-      } else if (w < 1024) {
-        maxWidth = Math.min(widthFromHeight, w - 80);
-      } else {
-        maxWidth = Math.min(widthFromHeight, w - 160, 700);
-      }
-      
-      const finalWidth = Math.max(300, maxWidth);
-      setPageWidth(finalWidth);
-      setPageHeight(Math.floor(finalWidth * aspectRatio));
-    };
-
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [handleResize]);
 
-  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
+  // Recalculate sizes when aspect ratio is loaded/updated
+  useEffect(() => {
+    handleResize();
+  }, [aspectRatio, handleResize]);
+
+  const onDocumentLoadSuccess = async (pdf: any) => {
+    setNumPages(pdf.numPages);
+    try {
+      // Fetch the first page to get actual aspect ratio dynamically
+      const firstPage = await pdf.getPage(1);
+      const viewport = firstPage.getViewport({ scale: 1 });
+      const ratio = viewport.height / viewport.width;
+      if (ratio && !isNaN(ratio)) {
+        aspectRef.current = ratio;
+        setAspectRatio(ratio);
+      }
+    } catch (error) {
+      console.error("Error detecting PDF aspect ratio:", error);
+    }
   };
 
   const handlePageFlip = (e: any) => {
     setCurrentPage(e.data);
   };
 
-  const toggleFullscreen = () => {
-    if (!containerRef.current) return;
-
-    if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen().then(() => {
-        setIsFullscreen(true);
-      }).catch((err) => {
-        console.error("Error enabling fullscreen:", err);
-      });
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
-  }, []);
+  // Remove fullscreen logic - not needed since we're already full viewport
 
   const flipPrev = () => {
     if (bookRef.current) {
@@ -156,9 +161,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
   return (
     <div 
       ref={containerRef}
-      className={`h-screen bg-gradient-to-br from-neutral-900 via-neutral-950 to-neutral-900 flex flex-col ${
-        isFullscreen ? "p-2" : "py-2 px-2 md:px-4"
-      } select-none transition-colors relative overflow-hidden`}
+      className="h-screen bg-neutral-950 flex items-center justify-center select-none relative overflow-hidden"
     >
       <style dangerouslySetInnerHTML={{__html: `
         .react-pdf__Page__canvas {
@@ -176,49 +179,29 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
         }
       `}} />
 
-      {/* Dynamic light sources */}
-      <div className="absolute -top-60 -right-60 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] -z-10" />
-      <div className="absolute -bottom-60 -left-60 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[120px] -z-10" />
+      {/* Back button - top left overlay */}
+      <button
+        onClick={() => router.push("/")}
+        className="absolute top-3 left-3 z-30 p-2 text-neutral-400 hover:text-white bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm transition-all"
+        title="กลับหน้าแรก"
+      >
+        <ArrowLeft className="w-5 h-5" />
+      </button>
 
-      {/* Top Navigation Header */}
-      <div className="w-full max-w-7xl mx-auto flex items-center justify-between gap-4 mb-2 z-10">
-        <button
-          onClick={() => router.push("/")}
-          className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-4 py-2.5 rounded-2xl border border-white/10 backdrop-blur-md"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="text-sm font-medium hidden sm:inline">กลับหน้าแรก</span>
-        </button>
+      {/* Download button - top right overlay */}
+      <a
+        href={pdfUrl}
+        download
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute top-3 right-3 z-30 p-2 text-neutral-400 hover:text-white bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm transition-all"
+        title="ดาวน์โหลดไฟล์ PDF"
+      >
+        <Download className="w-5 h-5" />
+      </a>
 
-        <div className="flex-1 text-center max-w-lg">
-          <h1 className="text-lg md:text-xl font-bold text-white truncate drop-shadow-md">
-            {title}
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <a
-            href={pdfUrl}
-            download
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-2.5 text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 backdrop-blur-md transition-all"
-            title="ดาวน์โหลดไฟล์ PDF"
-          >
-            <Download className="w-5 h-5" />
-          </a>
-          <button
-            onClick={toggleFullscreen}
-            className="p-2.5 text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 backdrop-blur-md transition-all"
-            title={isFullscreen ? "ออกจากโหมดเต็มหน้าจอ" : "เต็มหน้าจอ"}
-          >
-            {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Main E-book Flipbook Container */}
-      <div className="flex-1 flex items-center justify-center z-10 w-full max-w-7xl mx-auto overflow-hidden min-h-0">
+      {/* Main E-book Flipbook Container - full viewport */}
+      <div className="w-full h-full flex items-center justify-center">
         <Document
           file={pdfUrl}
           onLoadSuccess={onDocumentLoadSuccess}
@@ -287,65 +270,14 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                   <ChevronRight className="w-6 h-6" />
                 </button>
               )}
-              {/* Page number overlay - small badge on bottom-right of PDF */}
-              <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 text-[11px] font-medium text-neutral-300 pointer-events-none z-20">
+              {/* Page number overlay - bottom center of PDF */}
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/60 backdrop-blur-sm text-[11px] font-medium text-neutral-400 pointer-events-none z-20">
                 {currentPage + 1} / {numPages}
               </div>
             </div>
           )}
         </Document>
       </div>
-
-      {/* Compact Floating Controller - bottom center */}
-      {numPages && (
-        <div className="w-full flex justify-center mt-2 z-10">
-          <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-neutral-900/70 border border-white/10 backdrop-blur-xl shadow-2xl">
-            <button
-              onClick={flipPrev}
-              disabled={currentPage === 0}
-              className="p-1.5 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 rounded-lg text-white transition-all active:scale-95"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={flipNext}
-              disabled={currentPage >= numPages - 1}
-              className="p-1.5 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 rounded-lg text-white transition-all active:scale-95"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-
-            <div className="w-px h-5 bg-white/10" />
-
-            {/* Quick Page Jumper */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-[11px] text-neutral-500">ไปหน้า</span>
-              <input
-                type="number"
-                min={1}
-                max={numPages}
-                defaultValue={currentPage + 1}
-                onBlur={(e) => {
-                  const val = parseInt(e.target.value);
-                  if (val >= 1 && val <= numPages && bookRef.current) {
-                    bookRef.current.pageFlip().turnToPage(val - 1);
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    const val = parseInt((e.target as HTMLInputElement).value);
-                    if (val >= 1 && val <= numPages && bookRef.current) {
-                      bookRef.current.pageFlip().turnToPage(val - 1);
-                    }
-                  }
-                }}
-                className="w-12 px-1.5 py-0.5 text-center bg-neutral-950/60 border border-white/10 text-white rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs font-medium"
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
