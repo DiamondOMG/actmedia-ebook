@@ -4,7 +4,7 @@ import { desc } from "drizzle-orm";
 import UploadBook from "@/components/upload-btn";
 import DeleteBookButton from "@/components/delete-btn";
 import Link from "next/link";
-import { Book, Calendar, ExternalLink, HardDrive, Sparkles } from "lucide-react";
+import { Book, Calendar, ExternalLink, HardDrive, Sparkles, Eye } from "lucide-react";
 
 export const revalidate = 0; // Disable static cache to ensure newly uploaded books display instantly
 
@@ -100,9 +100,15 @@ export default async function Home() {
                       <div className="space-y-3">
                         {/* Footer statistics */}
                         <div className="flex items-center justify-between pt-2 text-[10px] font-bold text-neutral-400">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3.5 h-3.5 text-neutral-400" />
-                            <span>{new Date(book.createdAt).toLocaleDateString("en-US")}</span>
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-3.5 h-3.5 text-neutral-400" />
+                              <span>{new Date(book.createdAt).toLocaleDateString("en-US")}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Eye className="w-3.5 h-3.5 text-indigo-400" />
+                              <span className="text-indigo-600">{book.views || 0} views</span>
+                            </div>
                           </div>
                           {book.pdfSize && (
                             <div className="flex items-center gap-1">

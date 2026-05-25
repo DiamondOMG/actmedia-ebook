@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { books } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import BookViewLoader from "@/components/book-view-loader";
 
@@ -25,6 +25,12 @@ export default async function BookPage({ params }: BookPageProps) {
       notFound();
     }
     bookData = results[0];
+    
+    // Increment view count asynchronously
+    await db
+      .update(books)
+      .set({ views: sql`${books.views} + 1` })
+      .where(eq(books.id, id));
   } catch (error) {
     console.error("Error loading book page:", error);
     notFound();
