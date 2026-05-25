@@ -237,7 +237,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                 minHeight={400}
                 maxHeight={1400}
                 maxShadowOpacity={0.5}
-                showCover={false}
+                showCover={true}
                 mobileScrollSupport={true}
                 onFlip={handlePageFlip}
                 usePortrait={isPortrait}
