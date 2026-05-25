@@ -64,6 +64,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
   const [pageWidth, setPageWidth] = useState(450);
   const [pageHeight, setPageHeight] = useState(636);
   const [aspectRatio, setAspectRatio] = useState(1.414); // Default to A4
+  const [isPortrait, setIsPortrait] = useState(true);
   const aspectRef = useRef(1.414);
 
   // Resize handler to maximize PDF size based on available viewport and aspect ratio
@@ -82,7 +83,11 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
       horizontalMargin = 40;
     }
     
-    const maxAvailableWidth = w - horizontalMargin;
+    // Show 1 page on mobile/small screens (portrait), 2 pages on tablet/desktop (landscape)
+    const activePortrait = w < 768;
+    setIsPortrait(activePortrait);
+    
+    const maxAvailableWidth = activePortrait ? (w - horizontalMargin) : (w - horizontalMargin) / 2;
     
     // Calculate the width that would perfectly match the available height
     const widthFromHeight = Math.floor(availableHeight / currentRatio);
@@ -92,11 +97,11 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
     
     // Cap at a reasonable maximum width for desktop
     if (w >= 1024) {
-      finalWidth = Math.min(finalWidth, 800);
+      finalWidth = Math.min(finalWidth, 550);
     }
     
     // Set a minimum fallback width
-    finalWidth = Math.max(280, finalWidth);
+    finalWidth = Math.max(200, finalWidth);
     
     setPageWidth(finalWidth);
     setPageHeight(Math.floor(finalWidth * currentRatio));
@@ -222,6 +227,8 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
             <div className="relative">
               {/* @ts-ignore */}
               <HTMLFlipBook
+                key={isPortrait ? "portrait" : "landscape"}
+                startPage={currentPage}
                 width={pageWidth}
                 height={pageHeight}
                 size="fixed"
@@ -233,7 +240,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                 showCover={false}
                 mobileScrollSupport={true}
                 onFlip={handlePageFlip}
-                usePortrait={true}
+                usePortrait={isPortrait}
                 flippingTime={600}
                 useMouseEvents={true}
                 swipeDistance={30}
