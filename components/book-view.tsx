@@ -6,6 +6,7 @@ import HTMLFlipBook from "react-pageflip";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
+  Home,
   ChevronLeft,
   ChevronRight,
   Loader2,
@@ -185,14 +186,14 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
         }
       `}} />
 
-      {/* Back button - top left overlay */}
-      <button
-        onClick={() => router.push("/")}
+      {/* Home logo button - top left overlay */}
+      <a
+        href="https://www.actmedia.com"
         className="absolute top-3 left-3 z-30 p-2 text-neutral-400 hover:text-white bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm transition-all"
-        title="กลับหน้าแรก"
+        title="หน้าแรก"
       >
-        <ArrowLeft className="w-5 h-5" />
-      </button>
+        <Home className="w-5 h-5" />
+      </a>
 
       {/* Download button - top right overlay */}
       <a
