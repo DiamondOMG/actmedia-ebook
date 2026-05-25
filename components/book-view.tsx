@@ -31,6 +31,7 @@ const BookPage = forwardRef<HTMLDivElement, PageProps>((props, ref) => {
   return (
     <div
       ref={ref}
+      data-density="soft"
       className="bg-white shadow-2xl flex items-center justify-center overflow-hidden border border-neutral-200"
       style={{ width: props.width, height: props.height }}
     >
@@ -229,7 +230,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                 minHeight={400}
                 maxHeight={1400}
                 maxShadowOpacity={0.5}
-                showCover={true}
+                showCover={false}
                 mobileScrollSupport={true}
                 onFlip={handlePageFlip}
                 usePortrait={true}
@@ -238,7 +239,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                 swipeDistance={30}
                 showPageCorners={true}
                 drawShadow={true}
-                className="mx-auto rounded-xl overflow-hidden shadow-2xl"
+                className="mx-auto overflow-hidden shadow-2xl"
                 ref={bookRef}
               >
                 {Array.from(new Array(numPages), (el, index) => (
