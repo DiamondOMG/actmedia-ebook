@@ -30,7 +30,7 @@ export default async function Home() {
           </div>
           
           <h1 className="text-3xl md:text-5xl font-black tracking-tight text-neutral-900 bg-gradient-to-r from-indigo-700 via-violet-600 to-purple-800 bg-clip-text text-transparent">
-            ACT-MEDIA e-book
+            ACTMEDIA e-book
           </h1>
           
           <p className="text-neutral-500 max-w-lg mx-auto text-xs md:text-sm font-medium leading-relaxed">
@@ -74,13 +74,10 @@ export default async function Home() {
                   {allBooks.map((book) => (
                     <div
                       key={book.id}
-                      className="group relative rounded-[24px] bg-white border border-neutral-200/80 hover:border-indigo-300 p-5 md:p-6 transition-all duration-300 shadow-[0_5px_20px_rgba(0,0,0,0.01)] hover:shadow-[0_15px_30px_rgba(79,70,229,0.06)] hover:-translate-y-1 overflow-hidden flex flex-col justify-between h-[210px]"
+                      className="group relative rounded-[24px] bg-white border border-transparent p-5 md:p-6 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(79,70,229,0.08)] hover:-translate-y-1 overflow-hidden flex flex-col justify-between h-[210px]"
                     >
                       {/* Corner gradient decor */}
                       <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-50/40 rounded-full blur-xl group-hover:bg-indigo-50/80 transition-colors" />
-
-                      {/* Delete Book Button */}
-                      <DeleteBookButton bookId={book.id} bookTitle={book.title} />
 
                       <div className="space-y-3">
                         {/* Icon & Title */}
@@ -90,7 +87,7 @@ export default async function Home() {
                           </span>
                           
                           <h3 className="text-xl font-black text-neutral-900 group-hover:text-indigo-700 transition-colors line-clamp-1 flex-1 tracking-tight">
-                            {book.title}
+                             {book.title}
                           </h3>
                         </div>
 
@@ -102,7 +99,7 @@ export default async function Home() {
 
                       <div className="space-y-3">
                         {/* Footer statistics */}
-                        <div className="flex items-center justify-between pt-2 border-t border-neutral-100 text-[10px] font-bold text-neutral-400">
+                        <div className="flex items-center justify-between pt-2 text-[10px] font-bold text-neutral-400">
                           <div className="flex items-center gap-1">
                             <Calendar className="w-3.5 h-3.5 text-neutral-400" />
                             <span>{new Date(book.createdAt).toLocaleDateString("en-US")}</span>
