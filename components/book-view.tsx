@@ -316,7 +316,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                 if (pinchTimerRef.current) clearTimeout(pinchTimerRef.current);
                 pinchTimerRef.current = setTimeout(() => {
                   setIsPinchCooldown(false);
-                }, 2000);
+                }, 400);
               }}
             >
               <TransformComponent 
