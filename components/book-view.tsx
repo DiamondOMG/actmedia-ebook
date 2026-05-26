@@ -377,7 +377,10 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                     const dx = Math.abs((e.changedTouches[0]?.clientX ?? 0) - touchStartRef.current.x);
                     const dy = Math.abs((e.changedTouches[0]?.clientY ?? 0) - touchStartRef.current.y);
                     touchStartRef.current = null;
-                    if (dt < 300 && dx < 10 && dy < 10) flipPrev();
+                    if (dt < 300 && dx < 10 && dy < 10) {
+                      e.preventDefault(); // prevent synthetic onClick on mobile
+                      flipPrev();
+                    }
                   }}
                 />
                 {/* Right tap zone */}
@@ -394,7 +397,10 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                     const dx = Math.abs((e.changedTouches[0]?.clientX ?? 0) - touchStartRef.current.x);
                     const dy = Math.abs((e.changedTouches[0]?.clientY ?? 0) - touchStartRef.current.y);
                     touchStartRef.current = null;
-                    if (dt < 300 && dx < 10 && dy < 10) flipNext();
+                    if (dt < 300 && dx < 10 && dy < 10) {
+                      e.preventDefault(); // prevent synthetic onClick on mobile
+                      flipNext();
+                    }
                   }}
                 />
               </div>
