@@ -158,6 +158,15 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
     setCurrentPage(e.data);
   };
 
+  // When showCover=true, first page (0) and last page show as single page
+  // Shift the flipbook by half a page width to visually center it
+  const isSinglePage =
+    numPages !== null &&
+    (currentPage === 0 || currentPage >= numPages - 1);
+  const isFirstPage = currentPage === 0;
+  const isLastPage = numPages !== null && currentPage >= numPages - 1;
+  const flipbookShift = isFirstPage ? -(pageWidth / 2) : isLastPage ? pageWidth / 2 : 0;
+
   // Remove fullscreen logic - not needed since we're already full viewport
 
   const flipPrev = () => {
@@ -314,7 +323,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                     wrapperStyle={{ width: "100%", height: "100%" }} 
                     contentStyle={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
                   >
-                    <div className="relative" style={{ pointerEvents: isPinchCooldown ? 'none' : 'auto' }}>
+                    <div className="relative" style={{ pointerEvents: isPinchCooldown ? 'none' : 'auto', transform: `translateX(${flipbookShift}px)`, transition: 'transform 0.3s ease' }}>
                       {/* @ts-ignore */}
                       <HTMLFlipBook
                 key={isPortrait ? "portrait" : "landscape"}
