@@ -70,6 +70,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
   const transformRef = useRef<ReactZoomPanPinchRef>(null);
   const [isPinchCooldown, setIsPinchCooldown] = useState(false);
   const pinchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchStartRef = useRef<{ time: number; x: number; y: number } | null>(null);
 
   // Custom sizing for responsiveness - maximize PDF display
   const [pageWidth, setPageWidth] = useState(450);
@@ -331,7 +332,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                 onFlip={handlePageFlip}
                 usePortrait={isPortrait}
                 flippingTime={600}
-                useMouseEvents={true}
+                useMouseEvents={false}
                 swipeDistance={30}
                 showPageCorners={true}
                 drawShadow={true}
@@ -347,6 +348,45 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                   />
                 ))}
               </HTMLFlipBook>
+
+              {/* Tap zones - left = prev, right = next */}
+              <div
+                className="absolute inset-0 z-10 flex"
+                style={{ pointerEvents: isPinchCooldown ? 'none' : 'auto' }}
+              >
+                {/* Left tap zone */}
+                <div
+                  className="w-1/2 h-full"
+                  onTouchStart={(e) => {
+                    if (e.touches.length !== 1) return;
+                    touchStartRef.current = { time: Date.now(), x: e.touches[0].clientX, y: e.touches[0].clientY };
+                  }}
+                  onTouchEnd={(e) => {
+                    if (!touchStartRef.current) return;
+                    const dt = Date.now() - touchStartRef.current.time;
+                    const dx = Math.abs((e.changedTouches[0]?.clientX ?? 0) - touchStartRef.current.x);
+                    const dy = Math.abs((e.changedTouches[0]?.clientY ?? 0) - touchStartRef.current.y);
+                    touchStartRef.current = null;
+                    if (dt < 300 && dx < 10 && dy < 10) flipPrev();
+                  }}
+                />
+                {/* Right tap zone */}
+                <div
+                  className="w-1/2 h-full"
+                  onTouchStart={(e) => {
+                    if (e.touches.length !== 1) return;
+                    touchStartRef.current = { time: Date.now(), x: e.touches[0].clientX, y: e.touches[0].clientY };
+                  }}
+                  onTouchEnd={(e) => {
+                    if (!touchStartRef.current) return;
+                    const dt = Date.now() - touchStartRef.current.time;
+                    const dx = Math.abs((e.changedTouches[0]?.clientX ?? 0) - touchStartRef.current.x);
+                    const dy = Math.abs((e.changedTouches[0]?.clientY ?? 0) - touchStartRef.current.y);
+                    touchStartRef.current = null;
+                    if (dt < 300 && dx < 10 && dy < 10) flipNext();
+                  }}
+                />
+              </div>
 
               {/* Prev Button Trigger */}
               {currentPage > 0 && (
