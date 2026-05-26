@@ -11,8 +11,14 @@ import {
   ChevronRight,
   Loader2,
   Download,
-  Maximize
+  Maximize,
+  ZoomIn,
+  ZoomOut,
+  RefreshCcw,
+  Menu,
+  X
 } from "lucide-react";
+import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
 
 // Configure pdfjs worker from standard unpkg CDN to ensure smooth client-side parsing
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -61,7 +67,8 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
   const [isMounted, setIsMounted] = useState(false);
   const bookRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  
+  const transformRef = useRef<ReactZoomPanPinchRef>(null);
+
   // Custom sizing for responsiveness - maximize PDF display
   const [pageWidth, setPageWidth] = useState(450);
   const [pageHeight, setPageHeight] = useState(636);
@@ -70,19 +77,20 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
   const aspectRef = useRef(1.414);
   const [windowHeight, setWindowHeight] = useState<number | string>('100vh');
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Resize handler to maximize PDF size based on available viewport and aspect ratio
   const handleResize = React.useCallback(() => {
     const w = window.innerWidth;
     const h = window.innerHeight;
-    
+
     // ตั้งความสูงตาม pixel จริง เพื่อไม่ให้โดน URL bar ของมือถือบัง
     setWindowHeight(h);
 
     // Reserve minimal space for overlay badges (10px padding top/bottom)
     const availableHeight = h - 20;
     const currentRatio = aspectRef.current;
-    
+
     // Determine margins based on screen size
     let horizontalMargin = 20; // Default margin
     if (w >= 1024) {
@@ -90,29 +98,29 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
     } else if (w >= 640) {
       horizontalMargin = 40;
     }
-    
+
     // Show 1 page on mobile/small screens (portrait), 2 pages on tablet/desktop (landscape)
     // ** ทริค: บังคับให้เป็นแนวนอนเมื่อเป็นหน้า 2-3 (index 1 หรือ 2) **
     const isSpreadPage = currentPage === 1 || currentPage === 2;
     const activePortrait = w < 768 && !isSpreadPage;
     setIsPortrait(activePortrait);
-    
+
     const maxAvailableWidth = activePortrait ? (w - horizontalMargin) : (w - horizontalMargin) / 2;
-    
+
     // Calculate the width that would perfectly match the available height
     const widthFromHeight = Math.floor(availableHeight / currentRatio);
-    
+
     // Choose the smaller width to ensure it fits both width and height boundaries perfectly
     let finalWidth = Math.min(maxAvailableWidth, widthFromHeight);
-    
+
     // Cap at a reasonable maximum width for desktop
     if (w >= 1024) {
       finalWidth = Math.min(finalWidth, 550);
     }
-    
+
     // Set a minimum fallback width
     finalWidth = Math.max(200, finalWidth);
-    
+
     setPageWidth(finalWidth);
     setPageHeight(Math.floor(finalWidth * currentRatio));
   }, [currentPage]);
@@ -202,12 +210,13 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
   // pageHeight is now computed in resize handler
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className="bg-neutral-950 flex items-center justify-center select-none relative overflow-hidden w-full"
       style={{ height: typeof windowHeight === 'number' ? `${windowHeight}px` : windowHeight }}
     >
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .react-pdf__Page__canvas {
           width: 100% !important;
           height: 100% !important;
@@ -232,26 +241,36 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
         <Home className="w-5 h-5" />
       </a>
 
-      {/* Download button - top right overlay */}
-      <a
-        href={pdfUrl}
-        download
-        target="_blank"
-        rel="noopener noreferrer"
-        className="absolute top-3 right-3 z-30 p-2 text-neutral-400 hover:text-white bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm transition-all"
-        title="ดาวน์โหลดไฟล์ PDF"
-      >
-        <Download className="w-5 h-5" />
-      </a>
+      {/* Hamburger Menu & Horizontal Toolbar - Top Right */}
+      <div className="absolute top-3 right-3 z-50 flex flex-row-reverse items-center gap-2">
+        <button 
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="p-2 text-neutral-400 hover:text-white bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm transition-all"
+        >
+          {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
 
-      {/* Fullscreen button - next to download */}
-      <button
-        onClick={toggleFullScreen}
-        className="absolute top-3 right-14 z-30 p-2 text-neutral-400 hover:text-white bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm transition-all"
-        title={isFullScreen ? "ออกจากโหมดเต็มจอ" : "โหมดเต็มจอ"}
-      >
-        <Maximize className="w-5 h-5" />
-      </button>
+        {isMenuOpen && (
+          <div className="flex flex-row items-center gap-1 bg-black/70 backdrop-blur-md p-1.5 rounded-full border border-white/10 shadow-2xl animate-in slide-in-from-right-4 fade-in">
+            <button onClick={() => transformRef.current?.zoomIn()} className="p-2 text-white hover:bg-white/20 rounded-full transition-colors" title="ซูมเข้า">
+              <ZoomIn className="w-4 h-4" />
+            </button>
+            <button onClick={() => transformRef.current?.zoomOut()} className="p-2 text-white hover:bg-white/20 rounded-full transition-colors" title="ซูมออก">
+              <ZoomOut className="w-4 h-4" />
+            </button>
+            <button onClick={() => transformRef.current?.resetTransform()} className="p-2 text-white hover:bg-white/20 rounded-full transition-colors" title="ขนาดพอดีจอ">
+              <RefreshCcw className="w-4 h-4" />
+            </button>
+            <div className="w-px h-4 bg-white/20 mx-1" />
+            <button onClick={() => { toggleFullScreen(); setIsMenuOpen(false); }} className="p-2 text-white hover:bg-white/20 rounded-full transition-colors" title={isFullScreen ? "ออกจากโหมดเต็มจอ" : "โหมดเต็มจอ"}>
+              <Maximize className="w-4 h-4" />
+            </button>
+            <a href={pdfUrl} download target="_blank" rel="noopener noreferrer" onClick={() => setIsMenuOpen(false)} className="p-2 text-white hover:bg-white/20 rounded-full transition-colors" title="ดาวน์โหลดไฟล์ PDF">
+              <Download className="w-4 h-4" />
+            </a>
+          </div>
+        )}
+      </div>
 
       {/* Main E-book Flipbook Container - full viewport */}
       <div className="w-full h-full flex items-center justify-center">
@@ -271,9 +290,22 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
           }
         >
           {numPages && (
-            <div className="relative">
-              {/* @ts-ignore */}
-              <HTMLFlipBook
+            <TransformWrapper
+              ref={transformRef}
+              initialScale={1}
+              minScale={1}
+              maxScale={4}
+              centerOnInit={true}
+              wheel={{ step: 0.1 }}
+              pinch={{ step: 5 }}
+            >
+              <TransformComponent 
+                    wrapperStyle={{ width: "100%", height: "100%" }} 
+                    contentStyle={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
+                  >
+                    <div className="relative">
+                      {/* @ts-ignore */}
+                      <HTMLFlipBook
                 key={isPortrait ? "portrait" : "landscape"}
                 startPage={currentPage}
                 width={pageWidth}
@@ -330,6 +362,8 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                 {currentPage + 1} / {numPages}
               </div>
             </div>
+                  </TransformComponent>
+            </TransformWrapper>
           )}
         </Document>
       </div>
