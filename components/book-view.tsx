@@ -10,7 +10,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
-  Download
+  Download,
+  Maximize
 } from "lucide-react";
 
 // Configure pdfjs worker from standard unpkg CDN to ensure smooth client-side parsing
@@ -67,11 +68,17 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
   const [aspectRatio, setAspectRatio] = useState(1.414); // Default to A4
   const [isPortrait, setIsPortrait] = useState(true);
   const aspectRef = useRef(1.414);
+  const [windowHeight, setWindowHeight] = useState<number | string>('100vh');
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   // Resize handler to maximize PDF size based on available viewport and aspect ratio
   const handleResize = React.useCallback(() => {
     const w = window.innerWidth;
     const h = window.innerHeight;
+    
+    // ตั้งความสูงตาม pixel จริง เพื่อไม่ให้โดน URL bar ของมือถือบัง
+    setWindowHeight(h);
+
     // Reserve minimal space for overlay badges (10px padding top/bottom)
     const availableHeight = h - 20;
     const currentRatio = aspectRef.current;
@@ -154,6 +161,33 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
     }
   };
 
+  const toggleFullScreen = async () => {
+    if (!containerRef.current) return;
+    try {
+      if (!document.fullscreenElement) {
+        if (containerRef.current.requestFullscreen) {
+          await containerRef.current.requestFullscreen();
+        }
+        setIsFullScreen(true);
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+        setIsFullScreen(false);
+      }
+    } catch (e) {
+      console.warn("Fullscreen failed:", e);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
   if (!isMounted) {
     return (
       <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center gap-4">
@@ -168,7 +202,8 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
   return (
     <div 
       ref={containerRef}
-      className="h-screen bg-neutral-950 flex items-center justify-center select-none relative overflow-hidden"
+      className="bg-neutral-950 flex items-center justify-center select-none relative overflow-hidden w-full"
+      style={{ height: typeof windowHeight === 'number' ? `${windowHeight}px` : windowHeight }}
     >
       <style dangerouslySetInnerHTML={{__html: `
         .react-pdf__Page__canvas {
@@ -206,6 +241,15 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
       >
         <Download className="w-5 h-5" />
       </a>
+
+      {/* Fullscreen button - next to download */}
+      <button
+        onClick={toggleFullScreen}
+        className="absolute top-3 right-14 z-30 p-2 text-neutral-400 hover:text-white bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm transition-all"
+        title={isFullScreen ? "ออกจากโหมดเต็มจอ" : "โหมดเต็มจอ"}
+      >
+        <Maximize className="w-5 h-5" />
+      </button>
 
       {/* Main E-book Flipbook Container - full viewport */}
       <div className="w-full h-full flex items-center justify-center">
