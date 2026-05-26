@@ -92,9 +92,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
     }
     
     // Show 1 page on mobile/small screens (portrait), 2 pages on tablet/desktop (landscape)
-    // ** ทริค: บังคับให้เป็นแนวนอนเมื่อเป็นหน้า 2-3 (index 1 หรือ 2) **
-    const isSpreadPage = currentPage === 1 || currentPage === 2;
-    const activePortrait = w < 768 && !isSpreadPage;
+    const activePortrait = w < 768;
     setIsPortrait(activePortrait);
     
     const maxAvailableWidth = activePortrait ? (w - horizontalMargin) : (w - horizontalMargin) / 2;
@@ -115,7 +113,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
     
     setPageWidth(finalWidth);
     setPageHeight(Math.floor(finalWidth * currentRatio));
-  }, [currentPage]);
+  }, []);
 
   useEffect(() => {
     setIsMounted(true);
