@@ -68,6 +68,8 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
   const bookRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const transformRef = useRef<ReactZoomPanPinchRef>(null);
+  const [isPinchCooldown, setIsPinchCooldown] = useState(false);
+  const pinchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Custom sizing for responsiveness - maximize PDF display
   const [pageWidth, setPageWidth] = useState(450);
@@ -77,7 +79,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
   const aspectRef = useRef(1.414);
   const [windowHeight, setWindowHeight] = useState<number | string>('100vh');
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
 
   // Resize handler to maximize PDF size based on available viewport and aspect ratio
   const handleResize = React.useCallback(() => {
@@ -296,6 +298,16 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
               centerOnInit={true}
               wheel={{ step: 0.1 }}
               pinch={{ step: 5 }}
+              onPinch={() => {
+                setIsPinchCooldown(true);
+                if (pinchTimerRef.current) clearTimeout(pinchTimerRef.current);
+              }}
+              onPinchStop={() => {
+                if (pinchTimerRef.current) clearTimeout(pinchTimerRef.current);
+                pinchTimerRef.current = setTimeout(() => {
+                  setIsPinchCooldown(false);
+                }, 400);
+              }}
             >
               <TransformComponent 
                     wrapperStyle={{ width: "100%", height: "100%" }} 
@@ -319,7 +331,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                 onFlip={handlePageFlip}
                 usePortrait={isPortrait}
                 flippingTime={600}
-                useMouseEvents={true}
+                useMouseEvents={!isPinchCooldown}
                 swipeDistance={30}
                 showPageCorners={true}
                 drawShadow={true}
