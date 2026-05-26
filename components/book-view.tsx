@@ -366,6 +366,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                 {/* Left tap zone */}
                 <div
                   className="w-1/2 h-full"
+                  onClick={flipPrev}
                   onTouchStart={(e) => {
                     if (e.touches.length !== 1) return;
                     touchStartRef.current = { time: Date.now(), x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -382,6 +383,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                 {/* Right tap zone */}
                 <div
                   className="w-1/2 h-full"
+                  onClick={flipNext}
                   onTouchStart={(e) => {
                     if (e.touches.length !== 1) return;
                     touchStartRef.current = { time: Date.now(), x: e.touches[0].clientX, y: e.touches[0].clientY };
