@@ -313,7 +313,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                     wrapperStyle={{ width: "100%", height: "100%" }} 
                     contentStyle={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
                   >
-                    <div className="relative">
+                    <div className="relative" style={{ pointerEvents: isPinchCooldown ? 'none' : 'auto' }}>
                       {/* @ts-ignore */}
                       <HTMLFlipBook
                 key={isPortrait ? "portrait" : "landscape"}
@@ -331,7 +331,7 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
                 onFlip={handlePageFlip}
                 usePortrait={isPortrait}
                 flippingTime={600}
-                useMouseEvents={!isPinchCooldown}
+                useMouseEvents={true}
                 swipeDistance={30}
                 showPageCorners={true}
                 drawShadow={true}
