@@ -99,13 +99,11 @@ export default function BookView({ pdfUrl, title }: BookViewProps) {
       horizontalMargin = 40;
     }
 
-    // Show 1 page on mobile/small screens (portrait), 2 pages on tablet/desktop (landscape)
-    // ** ทริค: บังคับให้เป็นแนวนอนเมื่อเป็นหน้า 2-3 (index 1 หรือ 2) **
-    const isSpreadPage = currentPage === 1 || currentPage === 2;
-    const activePortrait = w < 768 && !isSpreadPage;
+    // บังคับแสดงผลเป็นโหมด 2 หน้า (Landscape) ทุกกรณี ตามความต้องการของลูกค้า
+    const activePortrait = false;
     setIsPortrait(activePortrait);
 
-    const maxAvailableWidth = activePortrait ? (w - horizontalMargin) : (w - horizontalMargin) / 2;
+    const maxAvailableWidth = (w - horizontalMargin) / 2;
 
     // Calculate the width that would perfectly match the available height
     const widthFromHeight = Math.floor(availableHeight / currentRatio);
